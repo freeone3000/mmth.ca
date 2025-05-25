@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<script>
+    function applyProtocol(url, remainingProtos) {
+        const protocol = remainingProtos.shift();
+        url.protocol = protocol;
+        window.location.href = url;
+        // essentially serves as a debounce; if we get success, we won't be on this page anymore.
+        setTimeout(() => {
+            if (remainingProtos.length > 0) {
+                applyProtocol(url, remainingProtos);
+            }
+        }, 100);
+    }
+
+    console.log(window.location.pathname);
+    const url = URL.parse(window.location.pathname.substring(1));
+    const allMastodonProtocols = ["toot://", "metatext://", "tusker://", "mastodon://", "fedilab://", "mstdn://", "masto://", "thedesk://", "web+mastodon://"];
+    applyProtocol(url, allMastodonProtocols);
+</script>
+<body>
+Please put a valid Mastodon link in the address bar and hit enter. This page will try to open it in the app.
+</body>
+</html>
