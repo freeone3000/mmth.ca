@@ -5,9 +5,8 @@
     <title>mmth.ca - Mastodon Share Service</title>
     <script>
         /* core script to handle protocol redirection for Mastodon URLs */
-        function applyProtocol(innerUrl, dialog, dialog_text, remainingProtos) {
+        function applyPrefix(innerUrl, dialog, dialog_text, remainingProtos) {
             const proto = remainingProtos.shift();
-            // TODO why can't we actually mutate innerUrl.protocol here?
             window.location.href = innerUrl.href.indexOf("://") === -1 ? innerUrl.href = proto + innerUrl.href : proto + innerUrl.href.substring(innerUrl.href.indexOf(":") + 1);
 
             // essentially serves as a debounce; if we get success, we won't be on this page anymore.
@@ -15,7 +14,7 @@
                 // this is necessary to ensure that the user has interacted with the page. This is required for Chrome.
                 if(remainingProtos.length > 0) {
                     fake_alert(dialog, dialog_text, "Redirecting to the Mastodon app... " + remainingProtos.length + " protocols remaining.").then(() => {
-                        applyProtocol(innerUrl, dialog, dialog_text, remainingProtos);
+                        applyPrefix(innerUrl, dialog, dialog_text, remainingProtos);
                     });
                 }
             }, 100);
@@ -39,10 +38,10 @@
             const pageUrl = new URL(window.location.href);
             let base = URL.parse(pageUrl.searchParams.get("url")) || URL.parse(pageUrl.pathname.substring(1));
             if(!!base) { // THEN if base is set, we can try the redirects
-                const allMastodonProtocols = ["toot:", "metatext:", "tusker:", "mastodon:", "fedilab:", "mstdn:", "masto:", "thedesk:", "web+mastodon:", "https:"];
+                const allMastodonProtocols = ["toot:", "ivory://acct/openURL?url=https://", "metatext:", "tusker:", "fedilab:", "thedesk:", "web+mastodon:", "https:"];
                 const dialog = document.getElementById("user-interaction-dialog");
                 const dialog_text = document.getElementById("progress-text");
-                applyProtocol(base, dialog, dialog_text, allMastodonProtocols);
+                applyPrefix(base, dialog, dialog_text, allMastodonProtocols);
             }
         });
     </script>
