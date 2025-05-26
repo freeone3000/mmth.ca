@@ -45,12 +45,27 @@
             return promise;
         }
 
+        /// Uses navigator.userAgent to determine if the user is on a mobile device.
+        function isMobile() {
+            const navUAData = navigator && navigator.userAgentData;
+            if(navUAData) {
+                return navUAData.mobile;
+            } else {
+                return /Android|gecko-trail|iPhone|iPad/i.test(navigator.userAgent);
+            }
+        }
+
         /* wait until page load to start the redirect process, so that we can have user interaction IF necessary */
         document.addEventListener("DOMContentLoaded", () => {
             const pageUrl = new URL(window.location.href);
             let base = URL.parse(pageUrl.searchParams.get("url")) || URL.parse(pageUrl.pathname.substring(1));
             if(!!base) { // THEN if base is set, we can try the redirects
-                const allMastodonProtocols = ["toot:", "ivory://acct/openURL?url=https://", "metatext:", "tusker:", "fedilab:", "thedesk:", "web+mastodon:", "https:"];
+                let allMastodonProtocols;
+                if(isMobile()) {
+                    allMastodonProtocols = ["toot:", "ivory://acct/openURL?url=https://", "metatext:", "tusker:", "fedilab:", "thedesk:", "web+mastodon:", "https:"];
+                } else {
+                    allMastodonProtocols = ["https://"];
+                }
                 const dialog = document.getElementById("user-interaction-dialog");
                 const dialog_text = document.getElementById("progress-text");
                 applyPrefix(base, dialog, dialog_text, allMastodonProtocols);
