@@ -39,7 +39,7 @@
             let base = URL.parse(pageUrl.searchParams.get("url")) || URL.parse(pageUrl.pathname.substring(1));
             const dialog = document.getElementById("user-interaction-dialog");
             if(!!base) { // THEN if base is set, we can try the redirects
-                const allMastodonProtocols = ["toot:", "metatext:", "tusker:", "mastodon:", "fedilab:", "mstdn:", "masto:", "thedesk:", "web+mastodon:"];
+                const allMastodonProtocols = ["toot:", "metatext:", "tusker:", "mastodon:", "fedilab:", "mstdn:", "masto:", "thedesk:", "web+mastodon:", "https:"];
                 applyProtocol(base, dialog, allMastodonProtocols);
             }
         });
@@ -48,6 +48,15 @@
 
 <!-- UI placeholder page below this line, in case the user did not supply a URL -->
 <body>
+<noscript>
+    <h1>We need javascript for this.</h1>
+    <p>
+        We're going to try a lot of URLs in sequence, so we do need client-side scripting. You can take a look,
+        it's at <a href="https://github.com/freeone3000/mmth.ca">https://github.com/freeone3000/mmth.ca</a> on GitHub,
+        or right-click view source. It's not obfuscated, I don't want your data, I just need to run some interactivity.
+    </p>
+</noscript>
+
 <h1>Please enter a URL below to handle the redirect.</h1>
 <div id="form">
     <form method="get" target="_self" autocomplete="off">
