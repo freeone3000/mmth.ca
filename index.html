@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <script>
+    /* core script to handle protocol redirection for Mastodon URLs */
     function applyProtocol(url, remainingProtos) {
-        const protocol = remainingProtos.shift();
-        url.protocol = protocol;
+        url.protocol = remainingProtos.shift();
         window.location.href = url;
         // essentially serves as a debounce; if we get success, we won't be on this page anymore.
         setTimeout(() => {
@@ -13,12 +13,27 @@
         }, 100);
     }
 
-    console.log(window.location.pathname);
-    const url = URL.parse(window.location.pathname.substring(1));
-    const allMastodonProtocols = ["toot://", "metatext://", "tusker://", "mastodon://", "fedilab://", "mstdn://", "masto://", "thedesk://", "web+mastodon://"];
-    applyProtocol(url, allMastodonProtocols);
+    const url = new URL(window.location.href);
+    let base = url.searchParams.get("url");
+    console.log("Base URL from search params:", base);
+    if(!base) { // if base is NOT set, try the pathname
+        base = window.location.pathname.substring(1);
+    }
+    if(!!base) { // THEN if base is set, we can try the redirects
+        const allMastodonProtocols = ["toot://", "metatext://", "tusker://", "mastodon://", "fedilab://", "mstdn://", "masto://", "thedesk://", "web+mastodon://"];
+        applyProtocol(base, allMastodonProtocols);
+    }
 </script>
+
+<!-- UI placeholder page below this line, in case the user did not supply a URL -->
 <body>
-Please put a valid Mastodon link in the address bar and hit enter. This page will try to open it in the app.
+<h1>Please enter a URL below to handle the redirect.</h1>
+<div id="form">
+    <form method="get" target="_self" autocomplete="off">
+        <label for="url">Enter a Mastodon URL to redirect to:</label><br>
+        <input type="url" id="url" name="url" value="" inputmode="url" pattern="https?://.+" required autofocus placeholder="https://mastodon.social/@wonderofscience/114571068685438086"><br>
+        <button type="submit">Redirect</button>
+    </form>
+</div>
 </body>
 </html>
