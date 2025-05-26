@@ -5,22 +5,22 @@
     <title>mmth.ca - Mastodon Share Service</title>
     <script>
         /* core script to handle protocol redirection for Mastodon URLs */
-        function applyPrefix(innerUrl, dialog, dialog_text, remainingProtos) {
-            const proto = remainingProtos.shift();
-            window.location.href = innerUrl.href.indexOf("://") === -1 ? innerUrl.href = proto + innerUrl.href : proto + innerUrl.href.substring(innerUrl.href.indexOf(":") + 1);
+        function applyFormats(innerUrl, dialog, dialog_text, remainingFormats) {
+            const description = remainingFormats.shift();
+            window.location.href = formatUrl(innerUrl, description);
 
             // essentially serves as a debounce; if we get success, we won't be on this page anymore.
             setTimeout(() => {
                 // this is necessary to ensure that the user has interacted with the page. This is required for Chrome.
-                if(remainingProtos.length > 0) {
-                    fake_alert(dialog, dialog_text, "Redirecting to the Mastodon app... " + remainingProtos.length + " protocols remaining.")
+                if(remainingFormats.length > 0) {
+                    fake_alert(dialog, dialog_text, "Redirecting to the Mastodon app... " + remainingFormats.length + " protocols remaining.")
                         .then(() => {
-                            applyPrefix(innerUrl, dialog, dialog_text, remainingProtos);
+                            applyFormats(innerUrl, dialog, dialog_text, remainingFormats);
                         })
                         .catch(() => {
                             // if we have a failed future, the dialog was cancelled instead of accepted,
                             // so we want to immediately skip to HTTPS
-                            applyPrefix(innerUrl, dialog, dialog_text, ["https:"]);
+                            applyFormats(innerUrl, dialog, dialog_text, ["https:"]);
                         });
                 }
             }, 100);
@@ -55,20 +55,32 @@
             }
         }
 
+        function addButtonListeners(dialog) {
+            const buttons = dialog.querySelectorAll(".dialog-close-button");
+            buttons.forEach(button => {
+                button.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    dialog.close(button.value);
+                });
+            });
+        }
+
         /* wait until page load to start the redirect process, so that we can have user interaction IF necessary */
         document.addEventListener("DOMContentLoaded", () => {
+            const dialog = document.getElementById("user-interaction-dialog");
+            addButtonListeners(dialog);
+
             const pageUrl = new URL(window.location.href);
             let base = URL.parse(pageUrl.searchParams.get("url")) || URL.parse(pageUrl.pathname.substring(1));
             if(!!base) { // THEN if base is set, we can try the redirects
                 let allMastodonProtocols;
-                if(isMobile()) {
+                if(isMobile() || pageUrl.hostname === "localhost") {
                     allMastodonProtocols = ["toot:", "ivory://acct/openURL?url=https://", "metatext:", "tusker:", "fedilab:", "thedesk:", "web+mastodon:", "https:"];
                 } else {
                     allMastodonProtocols = ["https://"];
                 }
-                const dialog = document.getElementById("user-interaction-dialog");
                 const dialog_text = document.getElementById("progress-text");
-                applyPrefix(base, dialog, dialog_text, allMastodonProtocols);
+                applyFormats(base, dialog, dialog_text, allMastodonProtocols);
             }
         });
     </script>
@@ -98,8 +110,8 @@
 <dialog id="user-interaction-dialog" closedby="any">
     <form method="dialog">
         <p id="progress-text">Redirecting to the Mastodon app...</p>
-        <button value="cancel" type="submit">Just use HTTPS</button>
-        <button value="continue" type="submit" autofocus>Continue</button>
+        <button value="cancel" class="dialog-close-button" type="submit">Just use HTTPS</button>
+        <button value="continue" class="dialog-close-button" type="submit" autofocus>Continue</button>
     </form>
 </dialog>
 </body>
