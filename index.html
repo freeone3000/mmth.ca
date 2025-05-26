@@ -90,27 +90,92 @@
             }
         });
     </script>
+
+    <style>
+        section#form {
+            display: block;
+            min-width: 45em;
+            width: 25%;
+            margin: 0 auto;
+
+            font-size: 150%;
+        }
+        section#form p {
+            font-size: 70%;
+        }
+        section#form input[type="text"],input[type="url"],button {
+            width: 100%;
+            box-sizing: border-box;
+            font-size-adjust: +1;
+        }
+        section#form button {
+            margin-top: 0.5em;
+            padding: 1em 0;
+        }
+
+        footer {
+            border-top: 1px solid black;
+            position: fixed;
+            bottom: 0;
+
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        footer>section {
+            flex: 1 1 33%;
+        }
+        address {
+            font-style: normal; /* why would it be italic? */
+        }
+    </style>
 </head>
 
-<!-- UI placeholder page below this line, in case the user did not supply a URL -->
 <body>
+<!-- noscript tag with recovery information, for HN users -->
 <noscript>
-    <h1>We need javascript for this.</h1>
-    <p>
-        We're going to try a lot of URLs in sequence, so we do need client-side scripting. You can take a look,
-        it's at <a href="https://github.com/freeone3000/mmth.ca">https://github.com/freeone3000/mmth.ca</a> on GitHub,
-        or right-click view source. It's not obfuscated, I don't want your data, I just need to run some interactivity.
-    </p>
+    <section id="noscript-warning">
+        <h1>We need javascript for this.</h1>
+        <p>
+            We're going to try a lot of URLs in sequence, so we do need client-side scripting. You can take a look,
+            it's at <a href="https://github.com/freeone3000/mmth.ca">https://github.com/freeone3000/mmth.ca</a> on GitHub,
+            or right-click view source. It's not obfuscated, I don't want your data, I just need to run some interactivity.
+        </p>
+    </section>
 </noscript>
 
-<h1>Please enter a URL below to handle the redirect.</h1>
-<div id="form">
+<!-- UI placeholder page below this line, in case the user did not supply a URL -->
+<section id="form">
+    <h1><label for="url">Enter a Mastodon URL:</label></h1>
+    <p>
+        This service will redirect you to the given URL in the Mastodon app that you have installed on your device.
+        It may take a few tries, and we have to prompt a few times due to web restrictions, so please bear with us!
+    </p>
     <form method="get" target="_self" autocomplete="off">
-        <label for="url">Enter a Mastodon URL to redirect to:</label><br>
         <input type="url" id="url" name="url" value="" inputmode="url" pattern="https?://.+" required autofocus placeholder="https://mastodon.social/@wonderofscience/114571068685438086"><br>
         <button type="submit">Redirect</button>
     </form>
-</div>
+</section>
+
+<!-- Footer section with privacy policy, source code, and contact information -->
+<footer>
+    <section>
+        <h3>Privacy Policy</h3>
+        <p>I don't collect or store any data.</p>
+        <p>This is run through CloudFlare. See <a href="https://www.cloudflare.com/en-ca/privacypolicy/">their privacy policy</a> as well.</p>
+    </section>
+    <section>
+        <h3>Source Code</h3>
+        Source is available <a href="https://github.com/freeone3000/mmth.ca">on GitHub</a>. Feel free to contribute or report issues.
+    </section>
+    <section>
+        <h3>Contact</h3>
+        <address>
+            <a href="https://mmth.ca/https://tech.lgbt/@jamoo">@jamoo@tech.lgbt</a><br>
+            <a href="mailto:jasmine@mmth.ca">jasmine@mmth.ca</a>
+        </address>
+    </section>
+</footer>
 
 <!-- Used for user interaction checks, which works for a "security" thing in Chrome -->
 <dialog id="user-interaction-dialog" closedby="any">
