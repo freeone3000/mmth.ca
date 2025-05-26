@@ -17,13 +17,19 @@
                         .then(() => {
                             applyFormats(innerUrl, dialog, dialog_text, remainingFormats);
                         })
-                        .catch(() => {
+                        .catch((msg) => {
+                            alert(msg);
                             // if we have a failed future, the dialog was cancelled instead of accepted,
                             // so we want to immediately skip to HTTPS
                             applyFormats(innerUrl, dialog, dialog_text, ["https:"]);
                         });
                 }
             }, 100);
+        }
+
+        function formatUrl(baseUrl, proto) {
+            // if we got here, we're doing fallback to the base pattern
+            return baseUrl.href.indexOf("://") === -1 ? baseUrl.href = proto + baseUrl.href : proto + baseUrl.href.substring(baseUrl.href.indexOf(":") + 1);
         }
 
         function fake_alert(dialog, target_text, text) {
