@@ -13,23 +13,35 @@
             setTimeout(() => {
                 // this is necessary to ensure that the user has interacted with the page. This is required for Chrome.
                 if(remainingProtos.length > 0) {
-                    fake_alert(dialog, dialog_text, "Redirecting to the Mastodon app... " + remainingProtos.length + " protocols remaining.").then(() => {
-                        applyPrefix(innerUrl, dialog, dialog_text, remainingProtos);
-                    });
+                    fake_alert(dialog, dialog_text, "Redirecting to the Mastodon app... " + remainingProtos.length + " protocols remaining.")
+                        .then(() => {
+                            applyPrefix(innerUrl, dialog, dialog_text, remainingProtos);
+                        })
+                        .catch(() => {
+                            // if we have a failed future, the dialog was cancelled instead of accepted,
+                            // so we want to immediately skip to HTTPS
+                            applyPrefix(innerUrl, dialog, dialog_text, ["https:"]);
+                        });
                 }
             }, 100);
         }
 
-        function fake_alert(target, target_text, text) {
-            let promise = new Promise((resolve) => {
+        function fake_alert(dialog, target_text, text) {
+            let promise = new Promise((resolve, reject) => {
                 let evt = () => {
-                    target.removeEventListener("close", evt);
-                    resolve();
+                    dialog.removeEventListener("close", evt);
+                    if(dialog.returnValue === "cancel") {
+                        reject("User cancelled the dialog.");
+                    } else if(dialog.returnValue === "continue") {
+                        resolve("User accepted the dialog.");
+                    } else {
+                        reject("Unexpected dialog return value: " + dialog.returnValue);
+                    }
                 };
-                target.addEventListener("close", evt);
+                dialog.addEventListener("close", evt);
             });
             target_text.textContent = text;
-            target.showModal();
+            dialog.showModal();
             return promise;
         }
 
@@ -68,10 +80,11 @@
 </div>
 
 <!-- Used for user interaction checks, which works for a "security" thing in Chrome -->
-<dialog id="user-interaction-dialog">
+<dialog id="user-interaction-dialog" closedby="any">
     <form method="dialog">
         <p id="progress-text">Redirecting to the Mastodon app...</p>
-        <button id="cancel-button" type="submit">OK</button>
+        <button value="cancel" type="submit">Just use HTTPS</button>
+        <button value="continue" type="submit" autofocus>Continue</button>
     </form>
 </dialog>
 </body>
