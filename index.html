@@ -1,29 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
-<script>
-    /* core script to handle protocol redirection for Mastodon URLs */
-    function applyProtocol(url, remainingProtos) {
-        url.protocol = remainingProtos.shift();
-        window.location.href = url;
-        // essentially serves as a debounce; if we get success, we won't be on this page anymore.
-        setTimeout(() => {
-            if (remainingProtos.length > 0) {
-                applyProtocol(url, remainingProtos);
-            }
-        }, 100);
-    }
+<head>
+    <meta charset="UTF-8">
+    <title>mmth.ca - Mastodon Share Service</title>
+    <script>
+        /* core script to handle protocol redirection for Mastodon URLs */
+        function applyProtocol(innerUrl, dialog, remainingProtos) {
+            const proto = remainingProtos.shift();
+            // TODO why can't we actually mutate innerUrl.protocol here?
+            window.location.href = innerUrl.href.indexOf("://") === -1 ? innerUrl.href = proto + innerUrl.href : proto + innerUrl.href.substring(innerUrl.href.indexOf(":") + 1);
 
-    const url = new URL(window.location.href);
-    let base = url.searchParams.get("url");
-    console.log("Base URL from search params:", base);
-    if(!base) { // if base is NOT set, try the pathname
-        base = window.location.pathname.substring(1);
-    }
-    if(!!base) { // THEN if base is set, we can try the redirects
-        const allMastodonProtocols = ["toot://", "metatext://", "tusker://", "mastodon://", "fedilab://", "mstdn://", "masto://", "thedesk://", "web+mastodon://"];
-        applyProtocol(base, allMastodonProtocols);
-    }
-</script>
+            // essentially serves as a debounce; if we get success, we won't be on this page anymore.
+            setTimeout(() => {
+                // this is necessary to ensure that the user has interacted with the page. This is required for Chrome.
+                if(remainingProtos.length > 0) {
+                    fake_alert(dialog).then(() => {
+                        applyProtocol(innerUrl, dialog, remainingProtos);
+                    });
+                }
+            }, 100);
+        }
+
+        function fake_alert(target) {
+            let promise = new Promise((resolve) => {
+                let evt = () => {
+                    target.removeEventListener("close", evt);
+                    resolve();
+                };
+                target.addEventListener("close", evt);
+            })
+            target.showModal();
+            return promise;
+        }
+
+        /* wait until page load to start the redirect process, so that we can have user interaction IF necessary */
+        document.addEventListener("DOMContentLoaded", () => {
+            const pageUrl = new URL(window.location.href);
+            let base = URL.parse(pageUrl.searchParams.get("url")) || URL.parse(pageUrl.pathname.substring(1));
+            const dialog = document.getElementById("user-interaction-dialog");
+            if(!!base) { // THEN if base is set, we can try the redirects
+                const allMastodonProtocols = ["toot:", "metatext:", "tusker:", "mastodon:", "fedilab:", "mstdn:", "masto:", "thedesk:", "web+mastodon:"];
+                applyProtocol(base, dialog, allMastodonProtocols);
+            }
+        });
+    </script>
+</head>
 
 <!-- UI placeholder page below this line, in case the user did not supply a URL -->
 <body>
@@ -35,5 +56,13 @@
         <button type="submit">Redirect</button>
     </form>
 </div>
+
+<!-- Used for user interaction checks, which works for a "security" thing in Chrome -->
+<dialog id="user-interaction-dialog">
+    <form method="dialog">
+        <p>Redirecting to the Mastodon app...</p>
+        <button id="cancel-button" type="submit">OK</button>
+    </form>
+</dialog>
 </body>
 </html>
